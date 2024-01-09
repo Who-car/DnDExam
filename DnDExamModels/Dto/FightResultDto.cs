@@ -3,6 +3,7 @@
 public class FightResultDto
 {
     public List<RoundResult> FightLog { get; set; } = new();
+    public PlayerModel PlayerModel { get; set; }
 
     public void Add(RoundResult roundResult)
     {

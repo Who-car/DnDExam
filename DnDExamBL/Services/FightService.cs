@@ -9,26 +9,24 @@ public class FightService : IFightService
     public PlayerModel Player { get; set; }
     public EnemyModel Enemy { get; set; }
 
-    public FightService() { }
-
     public FightResultDto GetResult()
     {
         var result = new FightResultDto();
-        var playerAttack = _random.Next(1, 21) + Player.AttackModifier;
-        var enemyAttack = _random.Next(1, 21) + Enemy.AttackModifier;
-        var isPlayerTurn = playerAttack >= enemyAttack;
-
-        result.Add(new RoundResult { CurrentPlayer = isPlayerTurn ? Player : Enemy, Round = 0 });
+        result.PlayerModel = Player;
+        result.Add(new RoundResult
+        {
+            Active = Player,
+            Passive = Enemy,
+            Round = 0
+        });
 
         var currentRound = 1;
         while (Player.HitPoints > 0 && Enemy.HitPoints > 0)
         { 
-            ProcessRound(currentRound, isPlayerTurn, result);
-            isPlayerTurn = !isPlayerTurn;
+            ProcessRound(currentRound, true, result);
             if (Player.HitPoints <= 0 || Enemy.HitPoints <= 0)
                 break; 
-            ProcessRound(currentRound, isPlayerTurn, result);
-            isPlayerTurn = !isPlayerTurn;
+            ProcessRound(currentRound, false, result);
             currentRound++;
         }
 
@@ -46,14 +44,25 @@ public class FightService : IFightService
         var attack = playerTurn
             ? _random.Next(1, 21) + Player.AttackModifier
             : _random.Next(1, 21) + Enemy.AttackModifier;
-        var hasHit = playerTurn
-            ? attack >= Enemy.ArmorClass || Player.AttackModifier + 1 >= Enemy.ArmorClass
-            : attack >= Player.ArmorClass || Enemy.AttackModifier + 1 >= Player.ArmorClass;
-        var damage = hasHit
-            ? playerTurn
-                ? Player.GetDamage() + Player.DamageModifier
-                : Enemy.GetDamage() + Enemy.DamageModifier
-            : 0;
+        var hit = attack == 1
+            ? HitType.CriticalMiss
+            : attack == 20
+                ? HitType.CriticalMatch
+                : playerTurn
+                    ? attack >= Enemy.ArmorClass || Player.AttackModifier + 1 >= Enemy.ArmorClass
+                        ? HitType.Match
+                        : HitType.Miss
+                    : attack >= Player.ArmorClass || Enemy.AttackModifier + 1 >= Player.ArmorClass
+                        ? HitType.Match
+                        : HitType.Miss;
+        var damage = hit == HitType.CriticalMiss || hit == HitType.Miss ? 0
+            : hit == HitType.Match ? 
+                playerTurn 
+                    ? Player.GetDamage() + Player.DamageModifier 
+                    : Enemy.GetDamage() + Enemy.DamageModifier
+                : playerTurn 
+                    ? Player.GetDamage() * 2 + Player.DamageModifier 
+                    : Enemy.GetDamage() * 2 + Enemy.DamageModifier;
         if (playerTurn)
             Enemy.HitPoints -= damage;
         else
@@ -61,9 +70,11 @@ public class FightService : IFightService
         log.Add(new RoundResult
         {
             Round = roundNum,
-            CurrentPlayer = playerTurn ? Player : Enemy,
-            HasHit = hasHit,
-            DamageCaused = damage
+            Active = playerTurn ? Player : Enemy,
+            Passive = playerTurn ? Enemy : Player,
+            PassivePlayerHitPointsLeft = playerTurn ? Enemy.HitPoints : Player.HitPoints,
+            Hit = hit,
+            Damage = damage,
         });
     }
 }

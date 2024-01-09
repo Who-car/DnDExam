@@ -1,4 +1,8 @@
-﻿@model DnDExamUI.Models.GameModel
+﻿@using DnDExamModels
+@model DnDExamUI.Models.GameModel
+@{
+    var buttonDisabled = Model.FightResult is not null && Model.FightResult.PlayerModel.HitPoints <= 0 ? "disabled" : null; 
+}
 
 <h2>D&D - create your own story!</h2>
 
@@ -6,47 +10,61 @@
     <div>
         <label asp-for="Player.Name"></label>
         <input class="form-control" asp-for="Player.Name"/>
-        <span asp-validation-for="Player.Name"></span>
+        <span class="text-danger" asp-validation-for="Player.Name"></span>
     </div>
     <div>
         <label asp-for="Player.HitPoints"></label>
         <input class="form-control" asp-for="Player.HitPoints"/>
-        <span asp-validation-for="Player.HitPoints"></span>
+        <span class="text-danger" asp-validation-for="Player.HitPoints"></span>
     </div>
     <div>
         <label asp-for="Player.ArmorClass"></label>
         <input class="form-control" asp-for="Player.ArmorClass"/>
-        <span asp-validation-for="Player.ArmorClass"></span>
+        <span class="text-danger" asp-validation-for="Player.ArmorClass"></span>
     </div>
     <div>
         <label asp-for="Player.AttackPerRound"></label>
         <input class="form-control" asp-for="Player.AttackPerRound"/>
-        <span asp-validation-for="Player.AttackPerRound"></span>
+        <span class="text-danger" asp-validation-for="Player.AttackPerRound"></span>
     </div>
     <div>
         <label asp-for="Player.AttackModifier"></label>
         <input class="form-control" asp-for="Player.AttackModifier"/>
-        <span asp-validation-for="Player.AttackModifier"></span>
+        <span class="text-danger" asp-validation-for="Player.AttackModifier"></span>
     </div>
     <div>
         <label asp-for="Player.Damage"></label>
         <input class="form-control" asp-for="Player.Damage"/>
-        <span asp-validation-for="Player.Damage"></span>
+        <span class="text-danger" asp-validation-for="Player.Damage"></span>
     </div>
     <div>
         <label asp-for="Player.DamageModifier"></label>
         <input class="form-control" asp-for="Player.DamageModifier"/>
-        <span asp-validation-for="Player.DamageModifier"></span>
+        <span class="text-danger" asp-validation-for="Player.DamageModifier"></span>
     </div>
-    <button type="submit">Start Fight!</button>
+    <button disabled="@buttonDisabled" type="submit">Fight!</button>
 </form>
 
 @if (Model.Enemy is not null)
 {
     <h3 class="text text-center">Your opponent</h3>
-    <div class="text ms-3">Name: @Model.Enemy.Name</div>
-    <div class="text ms-3">Hit Points: @Model.Enemy.HitPoints</div>
-    <div class="text ms-3">Armor Class: @Model.Enemy.ArmorClass</div>
+    <div class="text text-center">Name: @Model.Enemy.Name</div>
+    <div class="text text-center">Hit Points: @Model.Enemy.HitPoints</div>
+    <div class="text text-center">Armor Class: @Model.Enemy.ArmorClass</div>
+    <div class="text text-center">Number of attack per round: @Model.Enemy.AttackPerRound</div>
+    <div class="text text-center">Damage: @Model.Enemy.Damage</div>
+    <div class="text text-center">Attack modifier: @(Model.Enemy.AttackModifier > 0 ? "+" : "")@Model.Enemy.AttackModifier</div>
+    <div class="text text-center">Damage modifier: @(Model.Enemy.DamageModifier > 0 ? "+" : "")@Model.Enemy.DamageModifier</div>
+    <br/>
+    <h3 class="text text-center">You</h3>
+    <div class="text text-center">Name: @Model.Player.Name</div>
+    <div class="text text-center">Hit Points: @Model.Player.HitPoints</div>
+    <div class="text text-center">Armor Class: @Model.Player.ArmorClass</div>
+    <div class="text text-center">Number of attack per round: @Model.Player.AttackPerRound</div>
+    <div class="text text-center">Damage: @Model.Player.Damage</div>
+    <div class="text text-center">Attack modifier: @(Model.Player.AttackModifier > 0 ? "+" : "")@Model.Player.AttackModifier</div>
+    <div class="text text-center">Damage modifier: @(Model.Player.DamageModifier > 0 ? "+" : "")@Model.Player.DamageModifier</div>
+    <img src="https://www.memestemplates.com/wp-content/uploads/2022/06/finally-a-worthy-opponent.jpg" class="rounded mx-auto d-block" width="600" height="400"/>
 }
 <br/>
 @if (Model.FightResult != null)
@@ -55,25 +73,38 @@
     {
         if (log.Round == 0 && !log.IsOver)
         {
-            <div>@log.Time.ToLongTimeString() . The fight has started! @log.CurrentPlayer.Name starts</div>
+            <div>@log.Time.ToLongTimeString() . The fight has started! @log.Active.Name starts</div>
             <br/>
             continue;
         }
-        <div>@log.Time.ToLongTimeString() . Round: @log.Round</div>
+        <div>@log.Time.ToLongTimeString() . @(log.IsOver ? "" : $"Round: {log.Round}")</div>
         if (log.IsOver)
         {
             <div>Fight is over!</div>
             <div>Winner: @log.Winner!.Name</div>
+            @if (log.Winner.Name != Model.Player.Name)
+            {
+                <h2 class="text-danger">You Died</h2>
+                <img src="https://sun1-17.userapi.com/s/v1/ig2/HnwUsBZ8k6H2XnwgnGVWotJ_Fr9Ro1Ln9hBTNOa8p8nEV5bBFq7pJNJyX8fG0DuYJ7O4XrdmafmCW56pe7Ax4u4m.jpg?size=400x400&quality=95&crop=72,46,744,744&ava=1" class="rounded mx-auto d-block" width="500" height="600"/>
+            }
         }
         else
         {
-            if (log.HasHit)
+            <div>@log.Active.Name</div>
+            switch (log.Hit)
             {
-                <div>@log.CurrentPlayer.Name attacked and dealt @log.DamageCaused points of damage</div>
-            }
-            else
-            {
-                <div>@log.CurrentPlayer.Name had a bad day... Missed!</div>
+                case HitType.CriticalMiss:
+                    <div>Critical miss! Bad luck</div>
+                    break;
+                case HitType.Miss:
+                    <div>Miss! Next time try to be luckier</div>
+                    break;
+                case HitType.Match:
+                    <div>Match! @log.Damage points of damage. @log.Passive.Name has @log.PassivePlayerHitPointsLeft hit points</div>
+                    break;
+                case HitType.CriticalMatch:
+                    <div>Critical match! @log.Damage points of damage. @log.Passive.Name has @log.PassivePlayerHitPointsLeft hit points</div>
+                    break;
             }
         }
         <br/>
