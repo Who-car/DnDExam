@@ -1,0 +1,81 @@
+﻿@model DnDExamUI.Models.GameModel
+
+<h2>D&D - create your own story!</h2>
+
+<form asp-action="Game" method="post">
+    <div>
+        <label asp-for="Player.Name"></label>
+        <input class="form-control" asp-for="Player.Name"/>
+        <span asp-validation-for="Player.Name"></span>
+    </div>
+    <div>
+        <label asp-for="Player.HitPoints"></label>
+        <input class="form-control" asp-for="Player.HitPoints"/>
+        <span asp-validation-for="Player.HitPoints"></span>
+    </div>
+    <div>
+        <label asp-for="Player.ArmorClass"></label>
+        <input class="form-control" asp-for="Player.ArmorClass"/>
+        <span asp-validation-for="Player.ArmorClass"></span>
+    </div>
+    <div>
+        <label asp-for="Player.AttackPerRound"></label>
+        <input class="form-control" asp-for="Player.AttackPerRound"/>
+        <span asp-validation-for="Player.AttackPerRound"></span>
+    </div>
+    <div>
+        <label asp-for="Player.AttackModifier"></label>
+        <input class="form-control" asp-for="Player.AttackModifier"/>
+        <span asp-validation-for="Player.AttackModifier"></span>
+    </div>
+    <div>
+        <label asp-for="Player.Damage"></label>
+        <input class="form-control" asp-for="Player.Damage"/>
+        <span asp-validation-for="Player.Damage"></span>
+    </div>
+    <div>
+        <label asp-for="Player.DamageModifier"></label>
+        <input class="form-control" asp-for="Player.DamageModifier"/>
+        <span asp-validation-for="Player.DamageModifier"></span>
+    </div>
+    <button type="submit">Start Fight!</button>
+</form>
+
+@if (Model.Enemy is not null)
+{
+    <h3 class="text text-center">Your opponent</h3>
+    <div class="text ms-3">Name: @Model.Enemy.Name</div>
+    <div class="text ms-3">Hit Points: @Model.Enemy.HitPoints</div>
+    <div class="text ms-3">Armor Class: @Model.Enemy.ArmorClass</div>
+}
+<br/>
+@if (Model.Result != null)
+{
+    foreach (var log in Model.Result)
+    {
+        if (log.Round == 0 && !log.IsOver)
+        {
+            <div>@log.Time.ToLongTimeString() . The fight has started! @log.CurrentPlayer.Name starts</div>
+            <br/>
+            continue;
+        }
+        <div>@log.Time.ToLongTimeString() . Round: @log.Round</div>
+        if (log.IsOver)
+        {
+            <div>Fight is over!</div>
+            <div>Winner: @log.Winner!.Name</div>
+        }
+        else
+        {
+            if (log.HasHit)
+            {
+                <div>@log.CurrentPlayer.Name attacked and dealt @log.DamageCaused points of damage</div>
+            }
+            else
+            {
+                <div>@log.CurrentPlayer.Name had a bad day... Missed!</div>
+            }
+        }
+        <br/>
+    }
+}
