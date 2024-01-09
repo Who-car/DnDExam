@@ -1,4 +1,5 @@
 using DnDExamBL;
+using DnDExamBL.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDbContext<DndDbContext>(
     options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+builder.Services.AddTransient<IFightService, FightService>();
 
 var app = builder.Build();
 
