@@ -8,8 +8,7 @@ namespace DnDExamUI.Controllers;
 
 public class GameController : Controller
 {
-    private const string DbUrl = "http://localhost:5055/enemy/random";
-    private const string BlUrl = "http://localhost:5257/fight/start";
+    private const string Url = "https://localhost:7094";
 
     [HttpGet]
     public IActionResult Game()
@@ -23,13 +22,13 @@ public class GameController : Controller
         if (ModelState.IsValid)
         {
             using var client = new HttpClient();
-            var enemy = await client.GetFromJsonAsync<EnemyModel>(DbUrl);
+            var enemy = await client.GetFromJsonAsync<EnemyModel>($"{Url}/Fight/random");
             gameModel.Enemy = enemy;
             var result = await client.PostAsJsonAsync(
-                BlUrl,
+                $"{Url}/Fight/start",
                 new FightOpponentsDto { Player = gameModel.Player, Enemy = gameModel.Enemy }
             );
-            gameModel.Result = await result.Content.ReadFromJsonAsync<List<FightResultDto>>();
+            gameModel.FightResult = await result.Content.ReadFromJsonAsync<FightResultDto>();
         }
 
         return View(gameModel);

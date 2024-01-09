@@ -9,11 +9,7 @@ public class FightService : IFightService
     public PlayerModel Player { get; set; }
     public EnemyModel Enemy { get; set; }
 
-    public FightService(PlayerModel player, EnemyModel enemy)
-    {
-        Player = player;
-        Enemy = enemy;
-    }
+    public FightService() { }
 
     public FightResultDto GetResult()
     {

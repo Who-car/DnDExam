@@ -49,9 +49,9 @@
     <div class="text ms-3">Armor Class: @Model.Enemy.ArmorClass</div>
 }
 <br/>
-@if (Model.Result != null)
+@if (Model.FightResult != null)
 {
-    foreach (var log in Model.Result)
+    foreach (var log in Model.FightResult.FightLog)
     {
         if (log.Round == 0 && !log.IsOver)
         {

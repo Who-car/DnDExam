@@ -2,10 +2,10 @@
 
 public class FightResultDto
 {
-    public List<RoundResult> Result { get; set; } = new();
+    public List<RoundResult> FightLog { get; set; } = new();
 
     public void Add(RoundResult roundResult)
     {
-        Result.Add(roundResult);
+        FightLog.Add(roundResult);
     }
 }

@@ -10,10 +10,12 @@ namespace DnDExamBL.Controllers;
 public class FightController : Controller
 {
     private readonly DndDbContext _dbContext;
+    private readonly IFightService _fightService;
 
-    public FightController(DndDbContext dbContext)
+    public FightController(DndDbContext dbContext, IFightService fightService)
     {
         _dbContext = dbContext;
+        _fightService = fightService;
     }
     
     [HttpGet]
@@ -28,8 +30,9 @@ public class FightController : Controller
     [Route("start")]
     public JsonResult GetFightResult([FromBody] FightOpponentsDto opponents)
     {
-        var fightService = new FightService(opponents.Player, opponents.Enemy);
-        var result = fightService.GetResult();
+        _fightService.Player = opponents.Player;
+        _fightService.Enemy = opponents.Enemy;
+        var result = _fightService.GetResult();
         var json = Json(result);
         return json;
     }
